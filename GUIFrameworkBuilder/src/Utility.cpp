@@ -209,7 +209,7 @@ void addProjectsToSlnFile(const json::JSONParser& buildSettings, string& slnFile
 	for (const auto& i : dependencies->data)
 	{
 		string addProject;
-		
+
 		if (auto it = inside_projects::insideProjectFiles.find(i.first); it != inside_projects::insideProjectFiles.end())
 		{
 			addProject = "Project(" + sln::visualCPlusPlusProjectGUID + ") = " + addQuotes(i.first) + ", " + addQuotes(guiFrameworkFolder + '\\' + it->second) + ", " + addQuotes(get<string>(i.second)) +
@@ -339,7 +339,7 @@ void addAdditionalDependencies(const json::JSONParser& buildSettings, string& vc
 
 	for (const auto& i : linkingLibraries)
 	{
-		libraries += get<string>(buildSettings.get<unique_ptr<json::JSONParser::objectType>>(guiFrameworkLink)->data.at(i));
+		libraries += get<string>(buildSettings.get<unique_ptr<json::JSONParser::objectType>>(guiFrameworkLink)->data.at(i)) + ';';
 	}
 
 	while (vcxprojFile[startLink] != '<')
@@ -348,7 +348,7 @@ void addAdditionalDependencies(const json::JSONParser& buildSettings, string& vc
 		startLink++;
 	}
 
-	const string additionalDependenciesString = spacesString + vcxproj::startAdditionalDependenciesTag + libraries +  vcxproj::additionalDependenciesMacro + ';' + vcxproj::endAdditionalDependenciesTag + '\n';
+	const string additionalDependenciesString = spacesString + vcxproj::startAdditionalDependenciesTag + libraries + vcxproj::additionalDependenciesMacro + ';' + vcxproj::endAdditionalDependenciesTag + '\n';
 	startLink = vcxprojFile.find(vcxproj::startLinkTag) + vcxproj::startLinkTag.size() + 1;
 
 	while (true)
@@ -381,8 +381,7 @@ void addAdditionalDependencies(const json::JSONParser& buildSettings, string& vc
 
 void addAdditionalLibraryDirectories(string& vcxprojFile)
 {
-	const string libPaths = R"($(SolutionDir)bin\$(Configuration)-$(Platform)\)" + guiFrameworkName + ';' + "$(SolutionDir)" + guiFrameworkFolder + '\\' + guiFrameworkName + "\\libs;"
-		"$(SolutionDir)" + guiFrameworkFolder + R"(\Networks\vendor\OpenSSL\$(Configuration)-$(Platform);)";
+	const string libPaths = R"($(SolutionDir)bin\$(Configuration)-$(Platform)\)" + guiFrameworkName + ';' + "$(SolutionDir)" + guiFrameworkFolder + '\\' + guiFrameworkName + "\\libs;";
 	size_t startLink = vcxprojFile.find(vcxproj::startLinkTag) + vcxproj::startLinkTag.size() + 1;
 	string spacesString;
 
