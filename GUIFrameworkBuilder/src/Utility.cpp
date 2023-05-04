@@ -155,8 +155,6 @@ namespace utility
 			}
 
 			guidString.pop_back();
-
-			guidString = move(guidString);
 		}
 		else
 		{
