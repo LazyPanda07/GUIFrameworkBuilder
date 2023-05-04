@@ -2,6 +2,7 @@
 
 #include <iostream>
 #include <filesystem>
+#include <fstream>
 
 #include <Windows.h>
 
@@ -144,7 +145,7 @@ namespace utility
 
 			test.resize(39);
 
-			test.resize(StringFromGUID2(guid, test.data(), test.size()));
+			test.resize(StringFromGUID2(guid, test.data(), static_cast<int>(test.size())));
 
 			guidString.resize(test.size());
 
@@ -169,7 +170,7 @@ namespace utility
 void addProjectsToSlnFile(const json::JSONParser& buildSettings, string& slnFile)
 {
 	size_t lastEndProject = slnFile.rfind(sln::endProject) + sln::endProject.size() + 1;
-	const unique_ptr<json::JSONParser::objectType>& dependencies = buildSettings.get<unique_ptr<json::JSONParser::objectType>>(guiFrameworkSettings);
+	const json::utility::jsonObject& dependencies = buildSettings.getObject(guiFrameworkSettings);
 	size_t startProjectConfigurationPlatforms = slnFile.find('\n', slnFile.find(sln::projectConfigurationPlatforms)) + 1;
 	string backSlashTString;
 	string topLevelOfBackSlashTString;
@@ -206,7 +207,7 @@ void addProjectsToSlnFile(const json::JSONParser& buildSettings, string& slnFile
 		}
 	};
 
-	for (const auto& i : dependencies->data)
+	for (const auto& i : dependencies.data)
 	{
 		string addProject;
 
@@ -238,7 +239,7 @@ void addProjectsToSlnFile(const json::JSONParser& buildSettings, string& slnFile
 	size_t preLastEndGlobalSection = slnFile.rfind(sln::endGlobalSection, slnFile.rfind(sln::endGlobalSection) + 1) + sln::endGlobalSection.size() + 1;
 	string nestedProjects = topLevelOfBackSlashTString + sln::startGlobalSection + sln::nestedProjects + " = " + sln::preSolution + '\n';
 
-	for (const auto& i : dependencies->data)
+	for (const auto& i : dependencies.data)
 	{
 		nestedProjects += backSlashTString + get<string>(i.second) + " = " + guid + '\n';
 	}
@@ -272,7 +273,7 @@ void addAdditionalIncludeDirectories(const json::JSONParser& buildSettings, stri
 	size_t startClCompile = vcxprojFile.find(vcxproj::clCompileTag) + vcxproj::clCompileTag.size() + 1;
 	size_t stopOffset = startClCompile;
 	string spacesString;
-	const unique_ptr<json::JSONParser::objectType>& dependencies = buildSettings.get<unique_ptr<json::JSONParser::objectType>>(guiFrameworkSettings);
+	const json::utility::jsonObject& dependencies = buildSettings.getObject(guiFrameworkSettings);
 
 	while (vcxprojFile[startClCompile] != '<')
 	{
@@ -282,7 +283,7 @@ void addAdditionalIncludeDirectories(const json::JSONParser& buildSettings, stri
 
 	string additionalIncludeDirectories;
 
-	for (const auto& i : dependencies->data)
+	for (const auto& i : dependencies.data)
 	{
 		if (auto it = inside_projects::insideProjectIncludeDirectories.find(i.first); it != inside_projects::insideProjectIncludeDirectories.end())
 		{
@@ -339,7 +340,7 @@ void addAdditionalDependencies(const json::JSONParser& buildSettings, string& vc
 
 	for (const auto& i : linkingLibraries)
 	{
-		libraries += get<string>(buildSettings.get<unique_ptr<json::JSONParser::objectType>>(guiFrameworkLink)->data.at(i)) + ';';
+		libraries += buildSettings.getObject(guiFrameworkLink).getString(i) + ';';
 	}
 
 	while (vcxprojFile[startLink] != '<')
@@ -424,7 +425,7 @@ void addAdditionalLibraryDirectories(string& vcxprojFile)
 
 void addProjectReference(const json::JSONParser& buildSettings, string& vcxprojFile)
 {
-	string guiFrameworkGUID = get<string>(buildSettings.get<unique_ptr<json::JSONParser::objectType>>(guiFrameworkSettings)->data.at(guiFrameworkName));
+	const string& guiFrameworkGUID = buildSettings.getObject(guiFrameworkSettings).getString(guiFrameworkName);
 	size_t lastItemDefinition = vcxprojFile.rfind(vcxproj::endItemDefinitionGroupTag) + vcxproj::endItemDefinitionGroupTag.size() + 1;
 	string topLevelSpaces;
 	string oneBottomLevelSpaces;

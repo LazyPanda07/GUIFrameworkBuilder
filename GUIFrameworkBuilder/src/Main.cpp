@@ -1,10 +1,9 @@
 #include <iostream>
 #include <filesystem>
+#include <fstream>
 
 #include "Utility.h"
 #include "Constants.h"
-
-#pragma comment (lib, "JSON.lib")
 
 using namespace std;
 
@@ -16,7 +15,7 @@ void end();
 
 int main(int argc, char** argv)
 {
-	const filesystem::path buildFile(BUILD_FILE);
+	filesystem::path buildFile("build_file.json");
 
 	if (!filesystem::exists(buildFile))
 	{
